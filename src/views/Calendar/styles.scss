@@ -1,0 +1,308 @@
+.container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  .loader {
+    align-self: center;
+    position: absolute;
+    z-index: 100;
+    width: 80px;
+    height: 80px;
+    border: 5px solid transparent;
+    border-right: 5px solid #17cfcc;
+    border-bottom: 5px solid #17cfcc;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  .calendar {
+    display: flex;
+    width: 100%;
+    margin: 30px;
+    border: 1px solid #eaeaea;
+    border-radius: 15px;
+    color: #5f6368;
+    box-shadow: 0 0 15px #eaeaea;
+    .summary {
+      flex-basis: 40%;
+      padding: 25px 20px;
+      border-right: 1px solid #eaeaea;
+      .header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        .logo {
+          margin-right: 20px;
+          border-radius: 50%;
+          width: 80px;
+          height: 80px;
+        }
+        span {
+          overflow-x: hidden;
+          .title {
+            margin: 0;
+            font-size: 28px;
+          }
+          .subtitle {
+            color: #c0c0c0;
+            font-size: 18px;
+            font-weight: 400;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            word-break: normal;
+          }
+        }
+      }
+      .duration {
+        margin: 20px 10px;
+      }
+      .description {
+        margin-top: 10px;
+      }
+    }
+    .schedule-day,
+    .schedule-hour,
+    .form,
+    .success {
+      padding: 25px 20px;
+      flex-basis: 60%;
+      span {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        h2 {
+          font-size: 22px;
+        }
+        button {
+          margin-right: 10px;
+          padding: 5px;
+          background: transparent;
+          color: #5f6368;
+          border-radius: 50%;
+          border: none;
+          outline: none;
+          cursor: pointer;
+          font-size: 24px;
+          font-weight: 700;
+          transition: background-color 0.2s ease-out;
+
+          &:hover {
+            background-color: #5f636822;
+          }
+
+          &:disabled {
+            display: none;
+          }
+        }
+      }
+      h3 {
+        margin: 20px 0 20px 5px;
+        text-transform: capitalize;
+        font-weight: 200;
+        color: #c0c0c0;
+      }
+    }
+    .schedule-day {
+      position: relative;
+      .loader {
+        top: calc(50% - 40px);
+        left: calc(50% - 40px);
+      }
+      .v-calendar {
+        &.loading {
+          opacity: 0.5;
+          pointer-events: none;
+        }
+        border: none;
+      }
+    }
+    .schedule-hour {
+      .hours-group {
+        display: flex;
+        flex-direction: column;
+        button {
+          padding: 10px 15px;
+          margin: 5px 10px;
+          font-size: 18px;
+          font-weight: 700;
+          border: none;
+          outline: none;
+          border-radius: 5px;
+          color: white;
+          background-color: #17cfcc;
+          transition: background-color 0.2s ease-out, color 0.2s ease-out;
+
+          &:hover {
+            background-color: #17cfcc99;
+            cursor: pointer;
+            color: white;
+          }
+
+          &.disabled {
+            color: #5f6368;
+            background-color: #dadce088;
+
+            &:hover {
+              cursor: not-allowed;
+            }
+          }
+        }
+      }
+    }
+    .form {
+      position: relative;
+      .loader {
+        top: calc(50% - 40px);
+        left: calc(50% - 40px);
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        &.disabled {
+          opacity: 0.5;
+          pointer-events: none;
+        }
+        .input-field {
+          display: flex;
+          flex-direction: column;
+          margin: 8px 10px;
+          label {
+            margin-bottom: 5px;
+          }
+          input {
+            padding: 10px 12px;
+            border-radius: 5px;
+            outline: none;
+            border: 1px solid #c0c0c0;
+            background-color: transparent;
+          }
+        }
+        button {
+          padding: 10px 15px;
+          margin: 5px 10px;
+          font-size: 18px;
+          font-weight: bold;
+          border: none;
+          outline: none;
+          border-radius: 5px;
+          cursor: pointer;
+          color: white;
+          background-color: #17cfcc;
+          transition: background-color 0.2s ease-out, color 0.2s ease-out;
+
+          &:hover {
+            background-color: #17cfcc99;
+            color: white;
+          }
+        }
+      }
+    }
+    .success {
+      .message {
+        p {
+          font-size: 18px;
+          line-height: 1.5;
+          b {
+            color: #17cfcc;
+            text-decoration: underline;
+          }
+        }
+        .meet-summary {
+          display: flex;
+          flex-direction: column;
+          div {
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            img {
+              width: 30px;
+              margin: 0 10px;
+            }
+            h2 {
+              text-align: center;
+              font-size: 18px;
+            }
+          }
+        }
+      }
+    }
+  }
+  .calendar-error {
+    display: flex;
+    flex-direction: column;
+    align-self: center;
+    img {
+      width: 50%;
+      align-self: center;
+      animation: grow 3s ease-in-out infinite;
+    }
+    h2 {
+      align-self: center;
+    }
+  }
+}
+
+.opacity-enter,
+.opacity-leave-to {
+  opacity: 0;
+}
+
+.opacity-enter-active,
+.opacity-leave-active {
+  transition: all 0.2s ease-out;
+}
+
+.opacity-enter-to,
+.opacity-leave {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .container {
+    .calendar {
+      flex-direction: column;
+      .summary {
+        flex-basis: auto;
+        border: none;
+        border-bottom: 1px solid #eaeaea;
+        .header {
+          span {
+            overflow-x: hidden;
+            .title {
+              overflow: hidden;
+              text-overflow: ellipsis;
+              display: -webkit-box;
+              -webkit-line-clamp: 2;
+              -webkit-box-orient: vertical;
+              word-break: normal;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes grow {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

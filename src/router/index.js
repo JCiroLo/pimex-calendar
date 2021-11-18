@@ -7,12 +7,14 @@ const routes = [
   {
     path: '/',
     name: 'Greeting',
-    component: () => import(/* webpackChunkName: "greeting" */ '../views/Greeting.vue')
+    component: () =>
+      import(/* webpackChunkName: "greeting" */ '../views/Greeting.vue')
   },
   {
-    path: '/:calendarId',
+    path: '/:boardName/:eventId',
     name: 'Calendar',
-    component: () => import(/* webpackChunkName: "calendar" */ '../views/Calendar.vue')
+    component: () =>
+      import(/* webpackChunkName: "calendar" */ '../views/Calendar/index.vue')
   }
 ]
 

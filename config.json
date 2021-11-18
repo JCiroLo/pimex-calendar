@@ -1,0 +1,22 @@
+{
+  "pimexApi": {
+    "url": "https://api.pimex.co/v2",
+    "token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjExMiwiaWF0IjoxNTc0MTQ3MjA3fQ.YYdQd7sLHSbKLmRDVSqvAG3Y5VaaxXspUUzhfYKRLLg"
+  },
+  "chatsApi": {
+    "url": "https://pimex-chat-api-ciro.herokuapp.com"
+  },
+  "mixpanel": {
+    "token": "4eb2ba43842cf4f6f3d91af158012213"
+  },
+  "firebase": {
+    "apiKey": "AIzaSyB6HDZ8XRXcGSu_tIHue0_MhIzXCacd7oY",
+    "authDomain": "pimex-chat.firebaseapp.com",
+    "databaseURL": "https: //pimex-chat-default-rtdb.firebaseio.com",
+    "projectId": "pimex-chat",
+    "storageBucket": "pimex-chat.appspot.com",
+    "messagingSenderId": "689854161708",
+    "appId": "1: 689854161708:web: 670f760db4308dd3b9c289",
+    "measurementId": "G-173MTEFTFL"
+  }
+}
