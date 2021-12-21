@@ -11,6 +11,16 @@ const routes = [
       import(/* webpackChunkName: "greeting" */ '../views/Greeting.vue')
   },
   {
+    path: '/verify/:leadId',
+    component: () =>
+      import(/* webpackChunkName: "greeting" */ '../views/VerifyEvent/index.vue')
+  },
+  {
+    path: '/cancel/:leadId',
+    component: () =>
+      import(/* webpackChunkName: "greeting" */ '../views/CancelEvent/index.vue')
+  },
+  {
     path: '/:boardName/:eventId',
     name: 'Calendar',
     component: () =>

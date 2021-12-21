@@ -5,11 +5,38 @@
 </template>
 
 <style lang="scss">
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap");
 * {
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   margin: 0;
   padding: 0;
+}
+
+.loader {
+  align-self: center;
+  position: absolute;
+  z-index: 100;
+  width: 80px;
+  height: 80px;
+  border: 5px solid transparent;
+  border-right: 5px solid #17cfcc;
+  border-bottom: 5px solid #17cfcc;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.calendar-error {
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  img {
+    width: 40%;
+    align-self: center;
+  }
+  h2 {
+    align-self: center;
+    color: #2b2b2b;
+  }
 }
 
 .vc-day {
@@ -42,5 +69,29 @@
 
 .vc-arrow {
   border-radius: 50% !important;
+}
+
+.opacity-enter,
+.opacity-leave-to {
+  opacity: 0;
+}
+
+.opacity-enter-active,
+.opacity-leave-active {
+  transition: all 0.2s ease-out;
+}
+
+.opacity-enter-to,
+.opacity-leave {
+  opacity: 1;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

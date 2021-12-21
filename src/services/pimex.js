@@ -6,6 +6,11 @@ const token = config.pimexApi.token
 
 const pimex = {}
 
+pimex.getLead = async leadId => {
+  const { data } = await request.get(`${baseUrl}/conversions/${leadId}`)
+  return data.data
+}
+
 pimex.addLead = async leadData => {
   const { data } = await request.post(`${baseUrl}/conversions/`, leadData)
   return data

@@ -1,0 +1,34 @@
+.verify-container {
+  display: flex;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    .loader {
+      position: relative;
+    }
+    h1 {
+      color: #17cfcc;
+      text-align: center;
+      margin: 15px 0;
+      font-weight: 500;
+    }
+  }
+  .success-state {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    h1,
+    h2 {
+      text-align: center;
+      color: #17cfcc;
+    }
+  }
+}

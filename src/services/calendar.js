@@ -1,14 +1,32 @@
 import request from 'axios'
 
+const CLIENT_SECRET = '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'
 const CLIENT_ID =
-  '668702922045-18etcjcu2sordaudhddgcpki5vak72um.apps.googleusercontent.com'
-const API_KEY = 'AIzaSyAgreAVYTzJ6tr1jCljleaHfuLhGcGlpqc'
+  '317489015607-flqqe7a1gk2akeqtmt5lmkd5ic4pvmgo.apps.googleusercontent.com'
+const API_KEY = 'AIzaSyDOEFLx36RJE5NijrTGJE12beIsv99VnEc'
 const DISCOVERY_DOCS = [
   'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'
 ]
-const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly'
+const SCOPES = 'https://www.googleapis.com/auth/calendar'
 
 const calendar = {}
+
+const getRangeHours = (hours, day) => {
+  const from = new Date(hours.from.seconds * 1000)
+  const to = new Date(hours.to.seconds * 1000)
+
+  const [hourF, minF, secF] = [
+    from.getHours(),
+    from.getMinutes(),
+    from.getSeconds()
+  ]
+  const [hourT, minT, secT] = [to.getHours(), to.getMinutes(), to.getSeconds()]
+
+  const timeMin = new Date(day.year, day.month - 1, day.day, hourF, minF, secF)
+  const timeMax = new Date(day.year, day.month - 1, day.day, hourT, minT, secT)
+
+  return { timeMin, timeMax }
+}
 
 calendar.padHour = (len, n) => {
   return (new Array(len + 1).join('0') + n).slice(-len)
@@ -25,10 +43,9 @@ calendar.getAccesToken = async ownerEmail => {
     url: 'https://oauth2.googleapis.com/token',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     params: {
-      client_id:
-        '668702922045-18etcjcu2sordaudhddgcpki5vak72um.apps.googleusercontent.com',
+      client_id: CLIENT_ID,
       refresh_token: tokenRef.data().token,
-      client_secret: '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',
+      client_secret: CLIENT_SECRET,
       grant_type: 'refresh_token'
     }
   })
@@ -36,23 +53,31 @@ calendar.getAccesToken = async ownerEmail => {
   return data
 }
 
+calendar.getEvent = async eventId => {
+  const eventRef = await window.db
+    .collection('events')
+    .doc(eventId)
+    .get()
+  return { id: eventRef.id, ...eventRef.data() }
+}
+
 calendar.insertEvent = async (
   accessToken,
-  insertDate,
-  { title },
+  selectedHour,
+  calendarInfo,
   email,
   boardInfo
 ) => {
   const { data } = await request.post(
     'https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=all&conferenceDataVersion=1',
     {
-      summary: title,
+      summary: calendarInfo.title,
       location: '',
       start: {
-        dateTime: new Date(insertDate.start).toISOString()
+        dateTime: new Date(selectedHour.start).toISOString()
       },
       end: {
-        dateTime: new Date(insertDate.end).toISOString()
+        dateTime: new Date(selectedHour.end).toISOString()
       },
       conferenceData: {
         createRequest: {
@@ -79,104 +104,121 @@ calendar.insertEvent = async (
       }
     }
   )
-  return data
+  console.log(data)
+  const {
+    board,
+    createdAt,
+    days,
+    hours,
+    image,
+    months,
+    owner,
+    updatedAt,
+    id,
+    ...filteredCalendarInfo
+  } = calendarInfo
+  const res = await window.db.collection('events').add({
+    calendarId: id,
+    boardInfo: board,
+    selectedDate: selectedHour,
+    state: 'Agendado',
+    meetLink: data.hangoutLink,
+    metadata: filteredCalendarInfo,
+    meetId: data.id
+  })
+  return { eventId: res.id, ...data }
 }
 
-calendar.getEvent = async (boardName, eventId) => {
+calendar.getCalendar = async (boardName, calendarId) => {
   const eventRef = await window.db
     .collection('calendars')
-    .doc(eventId)
+    .doc(calendarId)
     .get()
   if (!eventRef.exists) {
     throw 'Error'
   }
-  return eventRef.data()
+  return { id: eventRef.id, ...eventRef.data() }
 }
 
-calendar.getAvaiableHours = async (accessToken, day, hours, duration) => {
-  const [hourF, minF, secF] = hours.from.split(':')
-  const [hourT, minT, secT] = hours.to.split(':')
+calendar.getAvaiableHours = async (accessToken, day, rangeHours, duration) => {
+  const availableHours = []
+  rangeHours.forEach(async hours => {
+    const { timeMin, timeMax } = getRangeHours(hours, day)
 
-  const range = {
-    items: [{ id: 'primary', busy: 'Active' }],
-    timeMin: new Date(
-      day.year,
-      day.month - 1,
-      day.day,
-      parseInt(hourF),
-      parseInt(minF),
-      parseInt(secF)
-    ).toISOString(),
-    timeMax: new Date(
-      day.year,
-      day.month - 1,
-      day.day,
-      parseInt(hourT),
-      parseInt(minT),
-      parseInt(secT)
-    ).toISOString()
-  }
+    console.log(timeMin, timeMax)
 
-  const { data } = await request.post(
-    'https://www.googleapis.com/calendar/v3/freeBusy?key=AIzaSyAgreAVYTzJ6tr1jCljleaHfuLhGcGlpqc',
-    range,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`
+    const range = {
+      items: [{ id: 'primary', busy: 'Active' }],
+      timeMin: timeMin.toISOString(),
+      timeMax: timeMax.toISOString()
+    }
+
+    const { data } = await request.post(
+      `https://www.googleapis.com/calendar/v3/freeBusy?key=${API_KEY}`,
+      range,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        }
       }
+    )
+
+    const calendarHours = data.calendars.primary.busy
+
+    let { timeMin: auxHour, timeMax: maxHour } = getRangeHours(hours, day)
+    auxHour = auxHour.getTime()
+    maxHour = maxHour.getTime()
+
+    const durationInMilliseconds =
+      duration.type === 'minutes'
+        ? 1000 * 60 * duration.time
+        : 1000 * 60 * 60 * duration.time
+
+    while (auxHour < maxHour) {
+      const nextHour = new Date(auxHour + durationInMilliseconds).getTime()
+      let isAvailable = true
+      calendarHours.forEach(cHour => {
+        const start = new Date(cHour.start).getTime() // Agended event start
+        const end = new Date(cHour.end).getTime() // Agended event end
+        if (
+          (auxHour <= start && start < nextHour) ||
+          (auxHour < end && end <= nextHour) ||
+          (start <= auxHour && auxHour < end) ||
+          (start < nextHour && nextHour <= end)
+        ) {
+          isAvailable = false
+        }
+      })
+      if (isAvailable) {
+        availableHours.push({
+          start: new Date(auxHour),
+          end: new Date(nextHour)
+        })
+      }
+      auxHour = nextHour
+    }
+  })
+  return availableHours
+}
+
+calendar.updateEventState = async (eventId, newState) => {
+  const ref = window.db.collection('events').doc(eventId)
+  await ref.update({ state: newState })
+}
+
+calendar.cancelMeetEvent = async (meetId, accessToken) => {
+  await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/primary/events/${meetId}?key=${API_KEY}`,
+    {
+      method: 'delete',
+      headers: new Headers({
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json'
+      }),
+      body: ''
     }
   )
-
-  const calendarHours = data.calendars.primary.busy
-
-  let auxHour = new Date(
-    day.year,
-    day.month - 1,
-    day.day,
-    parseInt(hourF),
-    parseInt(minF),
-    parseInt(secF)
-  ).getTime()
-
-  const maxHour = new Date(
-    day.year,
-    day.month - 1,
-    day.day,
-    parseInt(hourT),
-    parseInt(minT),
-    parseInt(secT)
-  ).getTime()
-
-  const durationInMilliseconds =
-    duration.type === 'minutes'
-      ? 1000 * 60 * duration.time
-      : 1000 * 60 * 60 * duration.time
-
-  const availableHours = []
-
-  while (auxHour < maxHour) {
-    const nextHour = new Date(auxHour + durationInMilliseconds).getTime()
-    let isAvailable = true
-    calendarHours.forEach(cHour => {
-      const start = new Date(cHour.start).getTime() // Agended event start
-      const end = new Date(cHour.end).getTime() // Agended event end
-      if (
-        (auxHour <= start && start < nextHour) ||
-        (auxHour < end && end <= nextHour) ||
-        (start <= auxHour && auxHour < end) ||
-        (start < nextHour && nextHour <= end)
-      ) {
-        isAvailable = false
-      }
-    })
-    if (isAvailable) {
-      availableHours.push({ start: new Date(auxHour), end: new Date(nextHour) })
-    }
-    auxHour = nextHour
-  }
-
-  return availableHours
 }
 
 export default calendar

@@ -11,7 +11,7 @@ export default {
         hours: false,
         creatingEvent: false
       },
-      error: false,
+      error: { state: false, message: '' },
       calendarInfo: {
         title: '',
         subtitle: '',
@@ -48,7 +48,7 @@ export default {
       currentTab: 0,
       selectedDay: {},
       selectedHour: {},
-      avaiableHours: [],
+      availableHours: [],
       authorized: false,
       items: undefined,
       googleAuth: '',
@@ -81,6 +81,14 @@ export default {
         }
       })
       return disabledDays
+    },
+    sortedAvaiableHours () {
+      console.log(this.selectedDay.label)
+      let sortedAvailableHours = this.availableHours
+      sortedAvailableHours.sort(function (a, b) {
+        return a.start - b.start
+      })
+      return sortedAvailableHours
     }
   },
   filters: {
@@ -106,25 +114,29 @@ export default {
   methods: {
     getAvaiableDates () {
       const range = {
-        from: new Date(),
-        to: null // new Date(this.calendarInfo.months.to.seconds * 1000)
+        from: new Date(this.calendarInfo.months.from.seconds * 1000),
+        to: new Date(this.calendarInfo.months.to.seconds * 1000 - 1)
       }
-      if (new Date().getTime() / 1000 < this.calendarInfo.months.from.seconds) {
-        range.from = new Date(this.calendarInfo.months.from.seconds * 1000)
+      if (new Date().getTime() > range.from.getTime()) {
+        range.from = new Date()
       }
       return range
     },
     async getAvaiableHours () {
-      const { access_token } = await $calendar.getAccesToken(
-        this.calendarInfo.owner.email
-      )
-
-      this.avaiableHours = await $calendar.getAvaiableHours(
-        access_token,
-        this.selectedDay,
-        this.calendarInfo.hours,
-        this.calendarInfo.duration
-      )
+      try {
+        const { access_token } = await $calendar.getAccesToken(
+          this.calendarInfo.owner.email
+        )
+        this.availableHours = await $calendar.getAvaiableHours(
+          access_token,
+          this.selectedDay,
+          this.calendarInfo.hours,
+          this.calendarInfo.duration
+        )
+      } catch (e) {
+        this.error.state = true
+        this.error.message = 'Ha ocurrido un error'
+      }
     },
     async selectDay (day) {
       if (day.isDisabled) {
@@ -160,12 +172,16 @@ export default {
           correo.value,
           this.$route.params.boardName
         )
+        console.log(this.eventData)
         const { data: lead } = await $pimex.addLead({
           _state: 'lead',
           name: correo.value.split('@')[0],
           phone: '',
           email: correo.value,
           project: this.calendarInfo.board.id,
+          custom: {
+            eventId: this.eventData.eventId
+          },
           referrer: 'Calendar',
           origin: 'Calendar',
           _compare: false
@@ -179,6 +195,8 @@ export default {
         this.currentTab++
         this.loading.creatingEvent = false
       } catch (e) {
+        this.error.state = true
+        this.error.message = 'Ha ocurrido un error'
         this.loading.creatingEvent = false
       }
     },
@@ -188,12 +206,20 @@ export default {
   },
   async beforeMount () {
     try {
-      this.calendarInfo = await $calendar.getEvent(
+      this.calendarInfo = await $calendar.getCalendar(
         this.$route.params.boardName,
         this.$route.params.eventId
       )
     } catch (e) {
-      this.error = true
+      this.error.state = true
+      this.error.message = 'El evento no está disponible'
+    }
+    if (
+      new Date().getTime() >
+      new Date(this.calendarInfo.months.to.seconds * 1000).getTime()
+    ) {
+      this.error.state = true
+      this.error.message = 'Este evento expiró'
     }
     this.loading.calendar = false
   }
