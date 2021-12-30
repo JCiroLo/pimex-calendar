@@ -43,21 +43,14 @@ export default {
           name: '',
           id: ''
         },
-        formFields: {
-          required: {
-            type: 'email',
-            label: 'Correo',
-            required: true,
-            value: ''
-          },
-          custom: []
-        }
+        formFields: []
       },
+      eventData: { hangoutLink: '', summary: '' },
+      leadData: {},
       currentTab: 0,
       selectedDay: {},
       selectedHour: {},
       availableHours: [],
-      meetData: { hangoutLink: '', summary: '' },
       meetIcon
     }
   },
@@ -148,47 +141,16 @@ export default {
       this.currentTab = 1
       this.loading.hours = false
     },
-    selectHour (hour) {
-      this.selectedHour = hour
-      this.currentTab = 2
-    },
-    async handleForm () {
+    async selectHour (hour) {
       this.loading.creatingEvent = true
+      this.selectedHour = hour
+      this.eventData.selectedDate = hour
       try {
-        if (this.calendarInfo.formFields.required.value === '') {
-          this.loading.creatingEvent = false
-          return
-        }
         const { access_token } = await $calendar.getAccesToken(
           this.calendarInfo.owner.email
         )
-        const { meetData, eventData } = await $calendar.insertEvent(
-          access_token,
-          this.selectedHour,
-          this.calendarInfo,
-          this.calendarInfo.formFields.required.value,
-          this.$route.params.boardName
-        )
-        this.meetData = meetData
-        console.log(eventData)
-        const { data: lead } = await $pimex.addLead({
-          _state: 'lead',
-          name: this.calendarInfo.formFields.required.value.split('@')[0],
-          phone: '',
-          email: this.calendarInfo.formFields.required.value,
-          project: this.calendarInfo.board.id,
-          referrer: 'Calendar',
-          origin: 'Calendar'
-          // _compare: false
-        })
-        console.log({ leadId: lead.ID, ...eventData })
-        await $calendar.updateEvent({ leadId: lead.ID, ...eventData })
-        await $pimex.addLeadTask(
-          lead.ID,
-          this.calendarInfo,
-          this.selectedHour,
-          this.meetData
-        )
+        await $calendar.rescheduleMeetEvent(this.eventData, access_token)
+        await $calendar.updateEvent(this.eventData)
         this.currentTab++
         this.loading.creatingEvent = false
       } catch (e) {
@@ -204,9 +166,11 @@ export default {
   },
   async beforeMount () {
     try {
+      this.leadData = await $pimex.getLead(this.$route.params.leadId)
+      this.eventData = await $calendar.getEvent(this.leadData.custom.eventId)
       this.calendarInfo = await $calendar.getCalendar(
-        this.$route.params.boardName,
-        this.$route.params.eventId
+        this.eventData.boardInfo.name,
+        this.eventData.calendarId
       )
     } catch (e) {
       this.error.state = true

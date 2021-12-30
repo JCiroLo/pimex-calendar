@@ -11,9 +11,7 @@
           <div class="header">
             <img
               class="logo"
-              :src="
-                `https://firebasestorage.googleapis.com/v0/b/pimex-chat.appspot.com/o/calendar%2F${calendarInfo.id}?alt=media&token=e90b4bbd-b9af-44d5-903d-943e51a4857a`
-              "
+              :src="calendarInfo.image.url"
               :alt="`${calendarInfo.title}_logo`"
             />
             <span>
@@ -84,7 +82,22 @@
             >
               <div
                 class="input-field"
-                v-for="(field, index) in calendarInfo.formFields"
+              >
+                <label>
+                  {{ calendarInfo.formFields.required.label }}
+                  <strong style="color: red;">
+                    {{ calendarInfo.formFields.required.required ? "*" : "" }}
+                  </strong>
+                </label>
+                <input
+                  v-model="calendarInfo.formFields.required.value"
+                  :type="calendarInfo.formFields.required.type"
+                  :required="calendarInfo.formFields.required.required"
+                />
+              </div>
+              <div
+                class="input-field"
+                v-for="(field, index) in calendarInfo.formFields.custom"
                 :key="index"
               >
                 <label>
@@ -111,7 +124,7 @@
               <h2>Felicitaciones, se ha agendado la cita.</h2>
               <p>
                 Enviamos un correo electrónico a
-                <span>{{ eventData.attendees[0].email }}</span> para confirmar
+                <span>{{ meetData.attendees[0].email }}</span> para confirmar
                 la asistencia, por favor verifique.
               </p>
             </div>
@@ -119,7 +132,7 @@
             <div class="meet-summary">
               <div class="icon">
                 <img :src="meetIcon" alt="meet_icon" />
-                <p>{{ eventData.summary }}</p>
+                <p>{{ meetData.summary }}</p>
               </div>
               <div class="icon">
                 <i class="far fa-clock fa-fw"></i>
@@ -137,8 +150,8 @@
               <div class="icon">
                 <i class="far fa-link fa-fw"></i>
                 <p>
-                  <a :href="eventData.hangoutLink">{{
-                    eventData.hangoutLink
+                  <a :href="meetData.hangoutLink">{{
+                    meetData.hangoutLink
                   }}</a>
                 </p>
               </div>

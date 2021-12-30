@@ -13,12 +13,25 @@ const routes = [
   {
     path: '/verify/:leadId',
     component: () =>
-      import(/* webpackChunkName: "greeting" */ '../views/VerifyEvent/index.vue')
+      import(
+        /* webpackChunkName: "greeting" */ '../views/VerifyEvent/index.vue'
+      )
   },
   {
     path: '/cancel/:leadId',
     component: () =>
-      import(/* webpackChunkName: "greeting" */ '../views/CancelEvent/index.vue')
+      import(
+        /* webpackChunkName: "greeting" */ '../views/CancelEvent/index.vue'
+      )
+  },
+  ,
+  {
+    path: '/reschedule/:leadId',
+    name: 'Calendar',
+    component: () =>
+      import(
+        /* webpackChunkName: "calendar" */ '../views/RescheduleEvent/index.vue'
+      )
   },
   {
     path: '/:boardName/:eventId',

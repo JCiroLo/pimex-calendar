@@ -1,15 +1,20 @@
 import request from 'axios'
 
-const CLIENT_SECRET = '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'
+const CLIENT_SECRET = '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'
 const CLIENT_ID =
-  '317489015607-flqqe7a1gk2akeqtmt5lmkd5ic4pvmgo.apps.googleusercontent.com'
-const API_KEY = 'AIzaSyDOEFLx36RJE5NijrTGJE12beIsv99VnEc'
+  '692108657923-2uafkdn3a59umaqrb8na4nrhp2r9r96e.apps.googleusercontent.com'
+const API_KEY = 'AIzaSyD9wys0UKAbFqlCEnrTIKGl3G1nmkPMLRs'
 const DISCOVERY_DOCS = [
   'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'
 ]
 const SCOPES = 'https://www.googleapis.com/auth/calendar'
 
 const calendar = {}
+
+const getFormFieldsEmail = formFields => {
+  const [correo] = formFields.filter(f => f.type === 'email')
+  return correo
+}
 
 const getRangeHours = (hours, day) => {
   const from = new Date(hours.from.seconds * 1000)
@@ -104,29 +109,26 @@ calendar.insertEvent = async (
       }
     }
   )
-  console.log(data)
-  const {
-    board,
-    createdAt,
-    days,
-    hours,
-    image,
-    months,
-    owner,
-    updatedAt,
-    id,
-    ...filteredCalendarInfo
-  } = calendarInfo
   const res = await window.db.collection('events').add({
-    calendarId: id,
-    boardInfo: board,
+    calendarId: calendarInfo.id,
+    boardInfo: calendarInfo.board,
     selectedDate: selectedHour,
-    state: 'Agendado',
     meetLink: data.hangoutLink,
-    metadata: filteredCalendarInfo,
-    meetId: data.id
+    formFields: calendarInfo.formFields,
+    meetId: data.id,
+    state: 'Agendado',
+    leadId: ''
   })
-  return { eventId: res.id, ...data }
+  return {
+    meetData: { eventId: res.id, ...data },
+    eventData: { id: res.id, ...(await res.get()).data() }
+  }
+}
+
+calendar.updateEvent = async eventData => {
+  const ref = window.db.collection('events').doc(eventData.id)
+  delete eventData.id
+  await ref.update(eventData)
 }
 
 calendar.getCalendar = async (boardName, calendarId) => {
@@ -217,6 +219,39 @@ calendar.cancelMeetEvent = async (meetId, accessToken) => {
         Accept: 'application/json'
       }),
       body: ''
+    }
+  )
+}
+
+calendar.rescheduleMeetEvent = async (eventData, accessToken) => {
+  await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventData.meetId}?key=${API_KEY}`,
+    {
+      method: 'put',
+      headers: new Headers({
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json'
+      }),
+      body: JSON.stringify({
+        summary: eventData.metadata.title,
+        location: '',
+        start: {
+          dateTime: new Date(eventData.selectedDate.start).toISOString()
+        },
+        end: {
+          dateTime: new Date(eventData.selectedDate.end).toISOString()
+        },
+        conferenceData: {
+          createRequest: {
+            conferenceSolutionKey: {
+              type: 'hangoutsMeet'
+            },
+            requestId: 'some-random-string'
+          }
+        },
+        status: 'confirmed',
+        visibility: 'public'
+      })
     }
   )
 }
