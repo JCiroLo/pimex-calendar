@@ -1,7 +1,7 @@
 <template>
   <div class="hello">
     <h1>Welcome to Pimex Calendar</h1>
-    <p>All work's fine :)</p>
+    <p>Todo melo pai</p>
   </div>
 </template>
 

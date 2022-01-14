@@ -27,14 +27,12 @@
 
 .calendar-error {
   display: flex;
-  flex-direction: column;
-  align-self: center;
+  align-items: center;
   img {
-    width: 40%;
-    align-self: center;
+    width: 50px;
+    margin-right: 15px;
   }
   h2 {
-    align-self: center;
     color: #2b2b2b;
   }
 }

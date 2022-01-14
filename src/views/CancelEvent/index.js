@@ -1,4 +1,4 @@
-import $pimex from '../../services/pimex'
+import $messages from '../../services/messages'
 import $calendar from '../../services/calendar'
 
 export default {
@@ -15,18 +15,24 @@ export default {
   },
   async beforeMount () {
     try {
-      const leadData = await $pimex.getLead(this.$route.params.leadId)
-      const eventData = await $calendar.getEvent(leadData.custom.eventId)
-      const calendarData = await $calendar.getCalendar(
-        eventData.boardInfo.name,
-        eventData.calendarId
+      const meetingData = await $calendar.getMeetingById(
+        this.$route.params.meetingId
       )
-      const { access_token } = await $calendar.getAccesToken(
-        calendarData.owner.email
+      console.log(meetingData)
+      const calendarData = await $calendar.getCalendarById(
+        meetingData.boardInfo.name,
+        meetingData.calendarId
       )
-      if (eventData.state === 'Agendado') {
-        await $calendar.updateEventState(leadData.custom.eventId, 'Cancelado')
-        await $calendar.cancelMeetEvent(eventData.meetId, access_token)
+      if (meetingData.state === 'Agendado') {
+        await $calendar.updateMeetingState(
+          this.$route.params.meetingId,
+          'Cancelado'
+        )
+        await $calendar.cancelGoogleMeetEvent(
+          meetingData.meetId,
+          calendarData.owner.email
+        )
+        await $messages.sendEmail(calendarData, meetingData, 'cancel')
       } else {
         this.error = {
           state: true,
@@ -34,13 +40,17 @@ export default {
         }
       }
       this.loading = false
-    } catch (e) {
-      console.log(e)
-      this.error = {
-        state: true,
-        message: 'Ha ocurrido un error, inténtelo de nuevo.'
+    } catch ({ response }) {
+      if (response.status === 404) {
+        this.error.state = true
+        this.error.message = 'El evento no existe'
+      } else {
+        this.error = {
+          state: true,
+          message: 'Ha ocurrido un error, inténtelo de nuevo.'
+        }
+        this.loading = false
       }
-      this.loading = false
     }
   }
 }

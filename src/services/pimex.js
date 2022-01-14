@@ -26,11 +26,15 @@ pimex.addLeadTask = async (leadId, calendarInfo, selectedHour, eventData) => {
     <strong style="font-weight: bold;">Enlace: </strong> <a href="${
       eventData.hangoutLink
     }">${eventData.hangoutLink}</a> <br/> 
-    <strong style="font-weight: bold;">Inicio de reunión: </strong> ${selectedHour.start.toLocaleString()} <br/> 
-    <strong style="font-weight: bold;">Fin de reunión: </strong> ${selectedHour.end.toLocaleString()}`,
-    start_date: selectedHour.start.getTime() / 1000,
+    <strong style="font-weight: bold;">Inicio de reunión: </strong> ${new Date(
+      selectedHour.start
+    ).toLocaleString()} <br/> 
+    <strong style="font-weight: bold;">Fin de reunión: </strong> ${new Date(
+      selectedHour.end
+    ).toLocaleString()}`,
+    start_date: new Date(selectedHour.start).getTime() / 1000,
     reminder: {
-      exect_date: selectedHour.start.getTime() / 1000
+      exect_date: new Date(selectedHour.start).getTime() / 1000
     }
   }
   const { data } = await request.post(

@@ -83,7 +83,10 @@
           }
 
           &:disabled {
-            display: none;
+            background-color: white;
+            color: #ddd;
+            pointer-events: none;
+            cursor: default;
           }
         }
       }

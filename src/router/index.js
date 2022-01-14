@@ -11,14 +11,14 @@ const routes = [
       import(/* webpackChunkName: "greeting" */ '../views/Greeting.vue')
   },
   {
-    path: '/verify/:leadId',
+    path: '/verify/:meetingId',
     component: () =>
       import(
         /* webpackChunkName: "greeting" */ '../views/VerifyEvent/index.vue'
       )
   },
   {
-    path: '/cancel/:leadId',
+    path: '/cancel/:meetingId',
     component: () =>
       import(
         /* webpackChunkName: "greeting" */ '../views/CancelEvent/index.vue'
@@ -26,7 +26,7 @@ const routes = [
   },
   ,
   {
-    path: '/reschedule/:leadId',
+    path: '/reschedule/:meetingId',
     name: 'Calendar',
     component: () =>
       import(

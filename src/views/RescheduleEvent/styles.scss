@@ -67,6 +67,12 @@
         pointer-events: none;
         user-select: none;
       }
+      .current-date {
+        text-align: end;
+        padding: 0 15px;
+        color: #c0c0c0;
+      }
+
       .schedule-day,
       .schedule-hour,
       .form,
@@ -96,7 +102,10 @@
             }
 
             &:disabled {
-              display: none;
+              background-color: white;
+              color: #ddd;
+              pointer-events: none;
+              cursor: default;
             }
           }
         }
@@ -201,7 +210,6 @@
           }
         }
       }
-
     }
   }
 }

@@ -7,7 +7,7 @@
         class="calendar"
         :key="1"
       >
-        <div v-if="loading.hours || loading.creatingEvent" class="loader" />
+        <div v-if="loading.hours || loading.updatingEvent" class="loader" />
         <div class="summary">
           <div class="header">
             <img
@@ -32,12 +32,19 @@
         </div>
         <div
           class="user-actions"
-          :class="{ loading: loading.hours || loading.creatingEvent }"
+          :class="{ loading: loading.hours || loading.updatingEvent }"
         >
+          <div class="current-date" v-if="currentTab < 2">
+            Reagendando {{ eventData.selectedDate.start.toDate().toLocaleDateString() }} •
+            {{ eventData.selectedDate.start.toDate() | formatHour }}
+          </div>
           <transition name="opacity" mode="out-in">
             <div class="schedule-day" key="0" v-if="currentTab === 0">
               <span>
-                <h2>Selecciona una fecha</h2>
+                <button disabled>
+                  <i class="fas fa-fw fa-chevron-left"></i>
+                </button>
+                <h2>Selecciona una fecha para reagendar</h2>
               </span>
               <vc-calendar
                 class="v-calendar"
@@ -78,7 +85,7 @@
               <div class="meet-summary">
                 <div class="icon">
                   <img :src="meetIcon" alt="meet_icon" />
-                  <p>{{ eventData.summary }}</p>
+                  <p>{{ googleMeetingData.summary }}</p>
                 </div>
                 <div class="icon">
                   <i class="far fa-clock fa-fw"></i>
@@ -96,8 +103,8 @@
                 <div class="icon">
                   <i class="far fa-link fa-fw"></i>
                   <p>
-                    <a :href="eventData.hangoutLink">{{
-                      eventData.hangoutLink
+                    <a :href="googleMeetingData.hangoutLink">{{
+                      googleMeetingData.hangoutLink
                     }}</a>
                   </p>
                 </div>

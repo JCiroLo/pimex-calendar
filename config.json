@@ -18,5 +18,10 @@
     "messagingSenderId": "689854161708",
     "appId": "1: 689854161708:web: 670f760db4308dd3b9c289",
     "measurementId": "G-173MTEFTFL"
+  },
+  "googleDev": {
+    "clientSecret": "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",
+    "clientId": "692108657923-2uafkdn3a59umaqrb8na4nrhp2r9r96e.apps.googleusercontent.com",
+    "apiKey": "AIzaSyD9wys0UKAbFqlCEnrTIKGl3G1nmkPMLRs"
   }
 }

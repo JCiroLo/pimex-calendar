@@ -1,5 +1,5 @@
 import $calendar from '../../services/calendar'
-import $pimex from '../../services/pimex'
+import $messages from '../../services/messages'
 import meetIcon from '../../assets/meet_icon.png'
 
 export default {
@@ -9,7 +9,7 @@ export default {
       loading: {
         calendar: true,
         hours: false,
-        creatingEvent: false
+        updatingEvent: false
       },
       error: { state: false, message: '' },
       calendarInfo: {
@@ -45,8 +45,8 @@ export default {
         },
         formFields: []
       },
-      eventData: { hangoutLink: '', summary: '' },
-      leadData: {},
+      eventData: {},
+      googleMeetingData: {},
       currentTab: 0,
       selectedDay: {},
       selectedHour: {},
@@ -97,18 +97,19 @@ export default {
       }
     },
     formatHour (date) {
-      const hour = date.getHours()
+      const hour = new Date(date).getHours()
+      const minutes = new Date(date).getMinutes()
       const meridiem = hour >= 12 ? 'PM' : 'AM'
       const hourWithZeros = $calendar.padHour(2, ((hour + 11) % 12) + 1)
-      const minutesWithZeros = $calendar.padHour(2, date.getMinutes())
+      const minutesWithZeros = $calendar.padHour(2, minutes)
       return `${hourWithZeros}:${minutesWithZeros} ${meridiem}`
     }
   },
   methods: {
     getAvaiableDates () {
       const range = {
-        from: new Date(this.calendarInfo.months.from.seconds * 1000),
-        to: new Date(this.calendarInfo.months.to.seconds * 1000 - 1)
+        from: new Date(this.calendarInfo.months.from),
+        to: new Date(new Date(this.calendarInfo.months.to).getTime() - 1)
       }
       if (new Date().getTime() > range.from.getTime()) {
         range.from = new Date()
@@ -117,15 +118,11 @@ export default {
     },
     async getAvaiableHours () {
       try {
-        const { access_token } = await $calendar.getAccesToken(
-          this.calendarInfo.owner.email
+        const availableHours = await $calendar.getAvaiableHours(
+          this.calendarInfo,
+          this.selectedDay
         )
-        this.availableHours = await $calendar.getAvaiableHours(
-          access_token,
-          this.selectedDay,
-          this.calendarInfo.hours,
-          this.calendarInfo.duration
-        )
+        return availableHours
       } catch (e) {
         this.error.state = true
         this.error.message = 'Ha ocurrido un error'
@@ -137,27 +134,39 @@ export default {
       }
       this.loading.hours = true
       this.selectedDay = day
-      await this.getAvaiableHours()
+      this.availableHours = await this.getAvaiableHours()
       this.currentTab = 1
       this.loading.hours = false
     },
     async selectHour (hour) {
-      this.loading.creatingEvent = true
+      this.loading.updatingEvent = true
       this.selectedHour = hour
       this.eventData.selectedDate = hour
       try {
-        const { access_token } = await $calendar.getAccesToken(
-          this.calendarInfo.owner.email
+        // Update google meeting info
+        this.googleMeetingData = await $calendar.rescheduleGoogleMeetEvent(
+          this.eventData,
+          this.calendarInfo
         )
-        await $calendar.rescheduleMeetEvent(this.eventData, access_token)
-        await $calendar.updateEvent(this.eventData)
+        // Update pimex meeting info
+        await $calendar.updateMeeting(this.eventData)
+        // Get pimex meeting info (to update timestamps)
+        this.eventData = await $calendar.getMeetingById(
+          this.$route.params.meetingId
+        )
+        // Send email to attendee
+        await $messages.sendEmail(
+          this.calendarInfo,
+          this.eventData,
+          'reschedule'
+        )
         this.currentTab++
-        this.loading.creatingEvent = false
+        this.loading.updatingEvent = false
       } catch (e) {
         console.log(e)
         this.error.state = true
         this.error.message = 'Ha ocurrido un error'
-        this.loading.creatingEvent = false
+        this.loading.updatingEvent = false
       }
     },
     goBack () {
@@ -166,15 +175,21 @@ export default {
   },
   async beforeMount () {
     try {
-      this.leadData = await $pimex.getLead(this.$route.params.leadId)
-      this.eventData = await $calendar.getEvent(this.leadData.custom.eventId)
-      this.calendarInfo = await $calendar.getCalendar(
+      this.eventData = await $calendar.getMeetingById(
+        this.$route.params.meetingId
+      )
+      this.calendarInfo = await $calendar.getCalendarById(
         this.eventData.boardInfo.name,
         this.eventData.calendarId
       )
-    } catch (e) {
-      this.error.state = true
-      this.error.message = 'El evento no está disponible'
+    } catch ({ response }) {
+      if (response.status === 404) {
+        this.error.state = true
+        this.error.message = 'El evento no existe'
+      } else {
+        this.error.state = true
+        this.error.message = 'El evento no está disponible'
+      }
     }
     if (
       new Date().getTime() >

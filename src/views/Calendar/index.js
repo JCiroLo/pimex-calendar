@@ -1,5 +1,6 @@
 import $calendar from '../../services/calendar'
 import $pimex from '../../services/pimex'
+import $messages from '../../services/messages'
 import meetIcon from '../../assets/meet_icon.png'
 
 export default {
@@ -104,18 +105,19 @@ export default {
       }
     },
     formatHour (date) {
-      const hour = date.getHours()
+      const hour = new Date(date).getHours()
+      const minutes = new Date(date).getMinutes()
       const meridiem = hour >= 12 ? 'PM' : 'AM'
       const hourWithZeros = $calendar.padHour(2, ((hour + 11) % 12) + 1)
-      const minutesWithZeros = $calendar.padHour(2, date.getMinutes())
+      const minutesWithZeros = $calendar.padHour(2, minutes)
       return `${hourWithZeros}:${minutesWithZeros} ${meridiem}`
     }
   },
   methods: {
     getAvaiableDates () {
       const range = {
-        from: new Date(this.calendarInfo.months.from.seconds * 1000),
-        to: new Date(this.calendarInfo.months.to.seconds * 1000 - 1)
+        from: new Date(this.calendarInfo.months.from),
+        to: new Date(new Date(this.calendarInfo.months.to).getTime() - 1)
       }
       if (new Date().getTime() > range.from.getTime()) {
         range.from = new Date()
@@ -124,15 +126,11 @@ export default {
     },
     async getAvaiableHours () {
       try {
-        const { access_token } = await $calendar.getAccesToken(
-          this.calendarInfo.owner.email
+        const availableHours = await $calendar.getAvaiableHours(
+          this.calendarInfo,
+          this.selectedDay
         )
-        this.availableHours = await $calendar.getAvaiableHours(
-          access_token,
-          this.selectedDay,
-          this.calendarInfo.hours,
-          this.calendarInfo.duration
-        )
+        return availableHours
       } catch (e) {
         this.error.state = true
         this.error.message = 'Ha ocurrido un error'
@@ -144,7 +142,7 @@ export default {
       }
       this.loading.hours = true
       this.selectedDay = day
-      await this.getAvaiableHours()
+      this.availableHours = await this.getAvaiableHours()
       this.currentTab = 1
       this.loading.hours = false
     },
@@ -159,18 +157,12 @@ export default {
           this.loading.creatingEvent = false
           return
         }
-        const { access_token } = await $calendar.getAccesToken(
-          this.calendarInfo.owner.email
-        )
-        const { meetData, eventData } = await $calendar.insertEvent(
-          access_token,
-          this.selectedHour,
+        this.calendarInfo.createdAt = new Date()
+        const { meetData, eventData } = await $calendar.insertMeeting(
           this.calendarInfo,
-          this.calendarInfo.formFields.required.value,
-          this.$route.params.boardName
+          this.selectedHour
         )
         this.meetData = meetData
-        console.log(eventData)
         const { data: lead } = await $pimex.addLead({
           _state: 'lead',
           name: this.calendarInfo.formFields.required.value.split('@')[0],
@@ -181,14 +173,14 @@ export default {
           origin: 'Calendar'
           // _compare: false
         })
-        console.log({ leadId: lead.ID, ...eventData })
-        await $calendar.updateEvent({ leadId: lead.ID, ...eventData })
+        await $calendar.updateMeeting({ ...eventData, leadId: lead.ID })
         await $pimex.addLeadTask(
           lead.ID,
           this.calendarInfo,
           this.selectedHour,
           this.meetData
         )
+        await $messages.sendEmail(this.calendarInfo, eventData, 'schedule')
         this.currentTab++
         this.loading.creatingEvent = false
       } catch (e) {
@@ -204,13 +196,18 @@ export default {
   },
   async beforeMount () {
     try {
-      this.calendarInfo = await $calendar.getCalendar(
+      this.calendarInfo = await $calendar.getCalendarById(
         this.$route.params.boardName,
         this.$route.params.eventId
       )
-    } catch (e) {
-      this.error.state = true
-      this.error.message = 'El evento no está disponible'
+    } catch ({ response }) {
+      if (response.status === 404) {
+        this.error.state = true
+        this.error.message = 'El evento no existe'
+      } else {
+        this.error.state = true
+        this.error.message = 'El evento no está disponible'
+      }
     }
     if (
       new Date().getTime() >

@@ -33,7 +33,11 @@
           <div class="schedule-day" key="0" v-if="currentTab === 0">
             <div v-if="loading.hours" class="loader" />
             <span>
+              <button disabled>
+                <i class="fas fa-fw fa-chevron-left"></i>
+              </button>
               <h2>Selecciona una fecha</h2>
+              <div class="spacer"></div>
             </span>
             <vc-calendar
               class="v-calendar"
@@ -80,9 +84,7 @@
               :class="{ disabled: loading.creatingEvent }"
               @submit.prevent="handleForm"
             >
-              <div
-                class="input-field"
-              >
+              <div class="input-field">
                 <label>
                   {{ calendarInfo.formFields.required.label }}
                   <strong style="color: red;">
@@ -124,8 +126,8 @@
               <h2>Felicitaciones, se ha agendado la cita.</h2>
               <p>
                 Enviamos un correo electrónico a
-                <span>{{ meetData.attendees[0].email }}</span> para confirmar
-                la asistencia, por favor verifique.
+                <span>{{ meetData.attendees[0].email }}</span> para confirmar la
+                asistencia, por favor verifique.
               </p>
             </div>
 
@@ -150,9 +152,7 @@
               <div class="icon">
                 <i class="far fa-link fa-fw"></i>
                 <p>
-                  <a :href="meetData.hangoutLink">{{
-                    meetData.hangoutLink
-                  }}</a>
+                  <a :href="meetData.hangoutLink">{{ meetData.hangoutLink }}</a>
                 </p>
               </div>
             </div>
