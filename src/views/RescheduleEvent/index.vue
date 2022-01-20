@@ -35,8 +35,8 @@
           :class="{ loading: loading.hours || loading.updatingEvent }"
         >
           <div class="current-date" v-if="currentTab < 2">
-            Reagendando {{ eventData.selectedDate.start.toDate().toLocaleDateString() }} •
-            {{ eventData.selectedDate.start.toDate() | formatHour }}
+            Reagendando {{ new Date(eventData.selectedDate.start).toLocaleDateString() }} •
+            {{ new Date(eventData.selectedDate.start) | formatHour }}
           </div>
           <transition name="opacity" mode="out-in">
             <div class="schedule-day" key="0" v-if="currentTab === 0">

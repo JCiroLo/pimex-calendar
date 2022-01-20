@@ -1,5 +1,4 @@
 import $calendar from '../../services/calendar'
-import $messages from '../../services/messages'
 import meetIcon from '../../assets/meet_icon.png'
 
 export default {
@@ -143,29 +142,26 @@ export default {
       this.selectedHour = hour
       this.eventData.selectedDate = hour
       try {
-        // Update google meeting info
-        this.googleMeetingData = await $calendar.rescheduleGoogleMeetEvent(
-          this.eventData,
-          this.calendarInfo
+        this.googleMeetingData = await $calendar.rescheduleMeeting(
+          this.eventData
         )
-        // Update pimex meeting info
-        await $calendar.updateMeeting(this.eventData)
-        // Get pimex meeting info (to update timestamps)
         this.eventData = await $calendar.getMeetingById(
           this.$route.params.meetingId
         )
-        // Send email to attendee
-        await $messages.sendEmail(
-          this.calendarInfo,
-          this.eventData,
-          'reschedule'
-        )
         this.currentTab++
         this.loading.updatingEvent = false
-      } catch (e) {
-        console.log(e)
-        this.error.state = true
-        this.error.message = 'Ha ocurrido un error'
+      } catch ({ response }) {
+        if (response.status === 405) {
+          this.error = {
+            state: true,
+            message: 'No se pueden reagendar eventos Confirmados o Cancelados'
+          }
+        } else {
+          this.error = {
+            state: true,
+            message: 'Ha ocurrido un error'
+          }
+        }
         this.loading.updatingEvent = false
       }
     },
@@ -192,8 +188,7 @@ export default {
       }
     }
     if (
-      new Date().getTime() >
-      new Date(this.calendarInfo.months.to.seconds * 1000).getTime()
+      new Date().getTime() > new Date(this.calendarInfo.months.to).getTime()
     ) {
       this.error.state = true
       this.error.message = 'Este evento expiró'

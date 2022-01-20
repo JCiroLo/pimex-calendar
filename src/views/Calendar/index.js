@@ -1,6 +1,5 @@
 import $calendar from '../../services/calendar'
 import $pimex from '../../services/pimex'
-import $messages from '../../services/messages'
 import meetIcon from '../../assets/meet_icon.png'
 
 export default {
@@ -180,7 +179,7 @@ export default {
           this.selectedHour,
           this.meetData
         )
-        await $messages.sendEmail(this.calendarInfo, eventData, 'schedule')
+        // await $messages.sendEmail(this.calendarInfo, eventData, 'schedule')
         this.currentTab++
         this.loading.creatingEvent = false
       } catch (e) {

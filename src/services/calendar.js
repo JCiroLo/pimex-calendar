@@ -1,6 +1,7 @@
 import request from 'axios'
+import config from '../../config.json'
 
-const API_URL = 'http://localhost:5000/pimex-calendar/us-central1/app'
+const API_URL = config.calendarApi.url
 
 const calendar = {}
 
@@ -42,6 +43,16 @@ calendar.updateMeetingState = async (meetingId, newState) => {
   const { data: meeting } = await request.patch(
     `${API_URL}/event/state/${meetingId}`,
     { newState }
+  )
+  return meeting
+}
+
+calendar.rescheduleMeeting = async meetingData => {
+  const meetingId = meetingData.id
+  delete meetingData.id
+  const { data: meeting } = await request.post(
+    `${API_URL}/event/reschedule/${meetingId}`,
+    meetingData
   )
   return meeting
 }

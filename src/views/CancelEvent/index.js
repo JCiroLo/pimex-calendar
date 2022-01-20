@@ -1,4 +1,3 @@
-import $messages from '../../services/messages'
 import $calendar from '../../services/calendar'
 
 export default {
@@ -15,42 +14,28 @@ export default {
   },
   async beforeMount () {
     try {
-      const meetingData = await $calendar.getMeetingById(
-        this.$route.params.meetingId
+      await $calendar.updateMeetingState(
+        this.$route.params.meetingId,
+        'Cancelado'
       )
-      console.log(meetingData)
-      const calendarData = await $calendar.getCalendarById(
-        meetingData.boardInfo.name,
-        meetingData.calendarId
-      )
-      if (meetingData.state === 'Agendado') {
-        await $calendar.updateMeetingState(
-          this.$route.params.meetingId,
-          'Cancelado'
-        )
-        await $calendar.cancelGoogleMeetEvent(
-          meetingData.meetId,
-          calendarData.owner.email
-        )
-        await $messages.sendEmail(calendarData, meetingData, 'cancel')
-      } else {
+    } catch ({ response }) {
+      if (response.status === 404) {
+        this.error = {
+          state: true,
+          message: 'El evento no existe.'
+        }
+      } else if (response.status === 405) {
         this.error = {
           state: true,
           message: 'El evento ha sido previamente confirmado o cancelado.'
         }
-      }
-      this.loading = false
-    } catch ({ response }) {
-      if (response.status === 404) {
-        this.error.state = true
-        this.error.message = 'El evento no existe'
       } else {
         this.error = {
           state: true,
           message: 'Ha ocurrido un error, inténtelo de nuevo.'
         }
-        this.loading = false
       }
     }
+    this.loading = false
   }
 }

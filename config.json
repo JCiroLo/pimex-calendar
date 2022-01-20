@@ -6,6 +6,9 @@
   "chatsApi": {
     "url": "https://pimex-chat-api-ciro.herokuapp.com"
   },
+  "calendarApi": {
+    "url": "https://pimex-calendar-api.herokuapp.com"
+  },
   "mixpanel": {
     "token": "4eb2ba43842cf4f6f3d91af158012213"
   },
