@@ -179,7 +179,6 @@ export default {
           this.selectedHour,
           this.meetData
         )
-        // await $messages.sendEmail(this.calendarInfo, eventData, 'schedule')
         this.currentTab++
         this.loading.creatingEvent = false
       } catch (e) {

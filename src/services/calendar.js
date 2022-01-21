@@ -1,7 +1,7 @@
 import request from 'axios'
 import config from '../../config.json'
 
-const API_URL = config.calendarApi.url
+const API_URL = true ? config.calendarApi.url : 'http://localhost:5000'
 
 const calendar = {}
 
@@ -55,23 +55,6 @@ calendar.rescheduleMeeting = async meetingData => {
     meetingData
   )
   return meeting
-}
-
-// Google meetings
-
-calendar.cancelGoogleMeetEvent = async (googleMeetId, ownerEmail) => {
-  const { data } = await request.delete(
-    `${API_URL}/google/cancel-meeting/${googleMeetId}?ownerEmail=${ownerEmail}`
-  )
-  return data
-}
-
-calendar.rescheduleGoogleMeetEvent = async (meetingData, calendarData) => {
-  const { data } = await request.put(`${API_URL}/google/reschedule-meet`, {
-    meetingData,
-    calendarData
-  })
-  return data
 }
 
 // Utils
